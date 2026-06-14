@@ -47,14 +47,24 @@ near drop-in for tooling built around that dataset.
 
 ## pcodes
 
-`pcode`s use the COD-AB convention: **`PH` + the PSGC code**, trimmed and nested
-by level — `PH13` (region) → `PH13803` (would-be province) → `PH1380600` (city)
-→ `PH1380601225` (barangay). They are built from the **new 2021-revision PSGC
-codes**, so a pcode is a **stable identifier**: the same unit keeps its pcode
-across years even when its parent changes (e.g. an EMBO barangay keeps its pcode
-while its `adm3` moves from City of Makati in 2022 to City of Taguig in 2024).
-The ~48 barangays abolished in the 2023 Bacoor merger / contested cases have no
-new code and fall back to `PH` + their legacy code.
+`pcode`s use the COD-AB convention (`PH` + the PSGC code, trimmed and nested by
+level), and **each year uses the code that was official at the time.** PSA
+renumbered the PSGC in 2021 — the province field grew from 2 to 3 digits — and
+OCHA COD-AB adopted the new 10-digit codes around 2023. So:
+
+| Level | 2022 & 2023 (`PH`+legacy, 2-digit province) | 2024 (`PH`+new, 3-digit province) |
+|---|---|---|
+| region | `PH13` | `PH13` |
+| province | `PH1376` | `PH13803` |
+| city | `PH137602` | `PH1380300` |
+| barangay | `PH137602003` | `PH1381500029` |
+
+(That example is one EMBO barangay: in 2022/2023 it carries its old **Makati**
+code, in 2024 its new **Taguig** code — matching reality both years.) Because the
+format changes, a unit's pcode differs between the 2023 and 2024 files; bridge
+them with the official PSGC old↔new correspondence. The ~48 barangays abolished
+in the 2023 Bacoor merger / contested cases have no clean old code and carry a
+documented `PH`+as-stored fallback in the 2022 file.
 
 ## Differences from official COD-AB
 
@@ -116,10 +126,11 @@ within the enclosing city/municipality polygons.
 
 ## Known limitations
 
-See [`DATA_NOTES.md`](DATA_NOTES.md). In brief: 2024 has 2 codeless barangays
-(a Caloocan split we can't subdivide, a contested Calaca barangay); the ~48
-abolished-2023 barangays use a `PH`+legacy fallback pcode; only the current
-(2024) codes are reconciled against an official roster.
+See [`DATA_NOTES.md`](DATA_NOTES.md). In brief: pcodes are era-specific (legacy
+old-format for 2022/2023, new for 2024), so they aren't a cross-year join key;
+2024 has 2 codeless barangays (a Caloocan split we can't subdivide, a contested
+Calaca barangay); the ~48 abolished-2023 barangays use a `PH`+as-stored fallback
+pcode; only the current (2024) codes are reconciled against an official roster.
 
 ## Sources
 

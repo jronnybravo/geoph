@@ -8,15 +8,25 @@ they aren't mistaken for errors.
 
 ## pcodes (read this first)
 
-`adm*_pcode` = **`PH` + the new (2021-revision) PSGC code**, trimmed and nested
-by level — the COD-AB convention. A pcode is a **stable identifier**: it stays
-constant for a unit across years even when the unit's parent changes. What
-changes per year is geometry, names, ancestry, and which units exist.
+`adm*_pcode` = **`PH` + the PSGC code**, trimmed and nested by level (COD-AB
+convention). **Each year uses the code that was official at the time.** PSA
+renumbered the PSGC in 2021 (province field 2→3 digits) and OCHA COD-AB adopted
+the new 10-digit codes around 2023, so:
 
+- **2022 & 2023** → `PH` + the **legacy old-format** code (2-digit province):
+  `PH13` → `PH1376` → `PH137602` → `PH137602003`.
+- **2024** → `PH` + the **new 10-digit** code (3-digit province):
+  `PH13` → `PH13803` → `PH1380300` → `PH1381500029`.
+
+Consequences:
+
+- A unit's pcode **differs between the 2023 and 2024 files** (format change), so
+  pcode is **not** a cross-year join key. Use the official PSGC old↔new
+  correspondence to bridge years.
 - The ~48 barangays abolished in the 2023 Bacoor merger (and the contested
-  Caloocan/Calaca cases) have **no new PSGC code**, so their `adm4_pcode` falls
-  back to `PH` + their legacy code. These won't strictly prefix-nest under their
-  parent's pcode, but their ancestry columns are correct.
+  Caloocan/Calaca cases) have no clean old code, so their `adm4_pcode` is a
+  `PH`+as-stored fallback. It may not strictly prefix-nest under its parent's
+  pcode, but the ancestry columns are correct (0 orphaned ancestry in all years).
 
 ## Structural mapping vs. official COD-AB
 
