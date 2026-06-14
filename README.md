@@ -1,81 +1,95 @@
-# geoph — Philippine administrative boundaries (synthesized)
+# geoph — Philippine administrative boundaries (synthesized, COD-AB format)
 
 > ⚠️ **Unofficial, synthesized dataset — not an official PSA/NAMRIA product.**
 > As of June 2026 the Philippine Statistics Authority (PSA) has **not published
 > official shapefiles** for the current PSGC. This dataset is *synthesized*: it
 > combines the latest openly-available boundary geometry with the official PSGC
-> attribute roster, reconciles the two, and reconstructs the state of each year
-> using a temporal model of the administrative changes. **Do not treat it as
+> attribute roster, reconciles the two, and reconstructs each year using a
+> temporal model of the administrative changes. **Do not treat it as
 > authoritative for legal or official purposes.** Boundaries are generalized
 > (see *Resolution*).
 
-Philippine administrative boundaries — regions down to barangays — as shapefiles,
-keyed by PSGC codes, **with one folder per year** so you can work with the
-boundaries as they stood in that year.
+Philippine administrative boundaries — regions down to barangays — as shapefiles
+in the **OCHA COD-AB schema**, with **one folder per year** so you can work with
+the boundaries as they stood in that year.
 
 ## Layout
 
 ```
 boundaries/
   2022/   2023/   2024/
-    regions.shp
-    provinces.shp
-    cities_municipalities.shp   (cities + municipalities + Manila sub-municipalities)
-    barangays.shp
+    regions.shp                 (adm1)
+    provinces.shp               (adm2)
+    cities_municipalities.shp   (adm3 — cities + municipalities)
+    barangays.shp               (adm4)
 ```
 
-All layers EPSG:4326 (WGS84). Each feature carries:
+All layers EPSG:4326 (WGS84), `MultiPolygon`, UTF-8.
 
-| Field | Meaning |
+## Schema (COD-AB)
+
+Each file follows the OCHA **Common Operational Dataset – Administrative
+Boundaries** layout: every feature carries its **full ancestry inline** plus
+metadata. For the barangay (adm4) file:
+
+| Group | Fields |
 |---|---|
-| `code` | **Operative PSGC code for that year** — see *Codes* below |
-| `code_new` | The current 2021-revision 10-digit code (stable crosswalk across years; blank for units abolished before the 2021 codes were adopted) |
-| `name` | Official name |
-| `level` | region / province / city / municipality / submunicipality / barangay |
-| `parent` | `code` of the parent unit (always use this for hierarchy joins) |
+| Unit | `adm4_name`, `adm4_pcode`, `adm4_ref_n`, `adm4_name1..3` (alt names, empty) |
+| City/Mun | `adm3_name`, `adm3_pcode`, `adm3_name1..3` |
+| Province | `adm2_name`, `adm2_pcode`, … |
+| Region | `adm1_name`, `adm1_pcode`, … |
+| Country | `adm0_name` (Philippines), `adm0_pcode` (PH) |
+| Meta | `valid_on`, `valid_to`, `area_sqkm`, `version`, `lang`, `lang1..3`, `center_lat`, `center_lon` |
 
-## Codes — important
+Higher-level files (adm1–adm3) carry the same layout truncated to their level.
+Field names and order match the official COD-AB Philippines files, so this is a
+near drop-in for tooling built around that dataset.
 
-The PSGC was renumbered in 2021 (Board Resolution No. 07): the province field grew
-from 2 to 3 digits (10-digit codes), phased in over a ~3-year transition completed
-around **2024**. To keep each year faithful:
+## pcodes
 
-- **2022 & 2023** (`code`) use the **legacy (pre-2021) code** — the code actually
-  operative then. Units created in the new-code era that never had a legacy code
-  fall back to their new code.
-- **2024** (`code`) uses the **new 2021-revision 10-digit code**.
-- `code_new` always carries the new code, so you can join the same unit across
-  years (e.g. an EMBO barangay reads its Makati code in 2022/2023 and its Taguig
-  code in 2024, but `code_new` is constant).
+`pcode`s use the COD-AB convention: **`PH` + the PSGC code**, trimmed and nested
+by level — `PH13` (region) → `PH13803` (would-be province) → `PH1380600` (city)
+→ `PH1380601225` (barangay). They are built from the **new 2021-revision PSGC
+codes**, so a pcode is a **stable identifier**: the same unit keeps its pcode
+across years even when its parent changes (e.g. an EMBO barangay keeps its pcode
+while its `adm3` moves from City of Makati in 2022 to City of Taguig in 2024).
+The ~48 barangays abolished in the 2023 Bacoor merger / contested cases have no
+new code and fall back to `PH` + their legacy code.
 
-Join hierarchy with the explicit `parent` field, **not** by truncating `code` —
-46 barangays abolished in the 2023 Bacoor merger carry new-format codes in the
-2022 layer and won't prefix-match their parent (the `parent` field is still
-correct). See [`DATA_NOTES.md`](DATA_NOTES.md).
+## Differences from official COD-AB
+
+- **Per-year folders** — COD-AB ships a single current snapshot; we reconstruct
+  2022, 2023 and 2024 from a temporal model.
+- **NCR has no province tier** — PSGC doesn't treat NCR's legislative districts
+  as provinces, so `adm2` is **blank** for NCR units (COD-AB fills 4 districts
+  there; that's why we have 83 provinces vs COD-AB's 88).
+- **Manila sub-municipalities folded** — PSGC's 14 Manila sub-municipalities are
+  not a COD-AB tier; their barangays roll up to `adm3` = City of Manila (matching
+  COD-AB), and the sub-municipalities are not separate features.
+- `valid_on` is the snapshot year date; `valid_to` open. `name1..3`/`lang1..3`
+  are empty (they are empty in the source too).
 
 ## What changed each year
 
 - **2022** — baseline. Maguindanao already split into del Norte / del Sur; the
   BARMM Special Geographic Area present. Bacoor still has its 44 pre-merger
-  barangays; Carmona is still a municipality; Sulu in BARMM; the EMBO barangays
-  under Makati; no Negros Island Region.
+  barangays; Carmona still a municipality; Sulu in BARMM; EMBO barangays under
+  Makati; no Negros Island Region.
 - **2023** — Bacoor barangay merger (44 → 18, City Ordinance 275-2023, eff.
   2023-07-29); Carmona becomes a city (RA 11938, eff. 2023-09-30).
 - **2024** — EMBO barangays transferred Makati → Taguig (eff. ~2024-06-01);
   **Negros Island Region** established (RA 12000, eff. 2024-06-11); Sulu moved
-  from BARMM to Region IX (Supreme Court ruling, eff. 2024-09-18). This is the
-  current configuration — no boundary changes since.
+  from BARMM to Region IX (Supreme Court ruling, eff. 2024-09-18). Current
+  configuration — no boundary changes since.
 
 ## Counts
 
-| Level | 2022 | 2023 | 2024 |
+| COD-AB level | 2022 | 2023 | 2024 |
 |---|--:|--:|--:|
-| region | 17 | 17 | 18 |
-| province (incl. Special Geographic Area) | 83 | 83 | 83 |
-| city | 148 | 149 | 149 |
-| municipality | 1,494 | 1,493 | 1,493 |
-| sub-municipality (Manila) | 14 | 14 | 14 |
-| barangay | 42,025 | 41,999 | 41,999 |
+| adm1 — region | 17 | 17 | 18 |
+| adm2 — province (incl. Special Geographic Area) | 83 | 83 | 83 |
+| adm3 — city / municipality | 1,642 | 1,642 | 1,642 |
+| adm4 — barangay | 42,025 | 41,999 | 41,999 |
 
 ## How it was made
 
@@ -87,11 +101,10 @@ A reconciliation of two open sources, projected through a temporal model:
    the legacy correspondence codes.
 
 The barangay layer was reconciled unit-by-unit to the official PSGC roster
-(**99.97%** exact code match for the current year); region, province,
-city/municipality and sub-municipality layers match official counts and codes
-exactly. Each year is then reconstructed from validity intervals (when each unit
-existed) and parent edges (who its parent was at that time). Integrity is clean
-for every year: 0 invalid geometries, 0 duplicate codes, 0 orphaned parent links.
+(**99.97%** exact code match for the current year); the higher levels match
+official counts and codes exactly. Each year is reconstructed from validity
+intervals and parent edges. Integrity is clean for every year: 0 invalid
+geometries, 0 duplicate pcodes, 0 orphaned ancestry.
 
 ## Resolution
 
@@ -104,10 +117,9 @@ within the enclosing city/municipality polygons.
 ## Known limitations
 
 See [`DATA_NOTES.md`](DATA_NOTES.md). In brief: 2024 has 2 codeless barangays
-(a Caloocan split we can't subdivide, a contested Calaca barangay); the 46
-abolished-2023 barangays carry new-format codes in the 2022 layer; and only the
-current (2024) codes are reconciled against an official roster — earlier years
-rely on the legacy codes we hold, not a year-specific PSGC publication.
+(a Caloocan split we can't subdivide, a contested Calaca barangay); the ~48
+abolished-2023 barangays use a `PH`+legacy fallback pcode; only the current
+(2024) codes are reconciled against an official roster.
 
 ## Sources
 
