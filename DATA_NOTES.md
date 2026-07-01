@@ -37,19 +37,34 @@ Consequences:
 - **Manila sub-municipalities folded.** PSGC's 14 Manila sub-municipalities have
   no COD-AB tier; their barangays roll up to `adm3` = City of Manila, and the
   sub-municipalities are not emitted as features (matching COD-AB's adm3 = 1,642).
-- **Independent cities carry their mother province at `adm2`.** Bacolod and
-  Isabela are province-independent in the PSGC (each has its own province-level
-  code: Bacolod `…302…`, Isabela `…97…`/`…901…`), but we fill `adm2` with the
-  province they sit in so they are not region-level orphans:
-  - **City of Bacolod** → `adm2` = Negros Occidental, region per year (Region VI
-    in 2022/2023; **NIR** in 2024). In 2022/2023 its `PH0645…` code nests under
-    Negros Occidental; in 2024 its independent `…302…` code does not strictly
-    prefix-nest, but the ancestry columns are correct.
-  - **City of Isabela** → `adm2` = Basilan, but `adm1` = **Region IX** every year.
-    Isabela opted out of ARMM/BARMM, so it is governed under Region IX while its
-    province Basilan sits in BARMM. This is the one deliberate case where a unit's
-    `adm2` belongs to a different region than its `adm1`; its `PH09…` code does not
-    prefix-nest under Basilan. Faithful to the real split — not an error.
+- **`adm2` is administrative, not geographic.** A city's `adm2` is the province
+  that *administers* it. **Highly Urbanized Cities (HUC)** and **Independent
+  Component Cities (ICC)** are independent of any province, so their `adm2` (and
+  their barangays' `adm2`) is **blank** — same treatment as NCR. Use `geo_par_id`
+  (below) for the province a city physically sits in. See `city_class` for the
+  classification driving this.
+  - **City of Isabela** is the one exception: it is an ordinary **component city**
+    of Basilan (its residents vote for Basilan provincial officials), so `adm2` =
+    Basilan. But it opted out of ARMM/BARMM and is serviced by **Region IX**, so
+    `adm1` = Region IX every year while Basilan itself sits in BARMM — the one
+    deliberate case where a unit's `adm2` belongs to a different region than its
+    `adm1`. Its `PH09…` code does not prefix-nest under Basilan; ancestry is still
+    correct.
+- **`city_class`** (cities layer): `HUC` (33), `ICC` (5: Dagupan, Naga [Camarines
+  Sur], Ormoc, Santiago, Cotabato), `CC` (component cities, 111), or blank
+  (municipalities) — 149 cities total. Invariant: `adm2` is blank ⟺ `city_class`
+  is `HUC` or `ICC`. Naga (Camarines Sur) is treated as an **ICC** for 2022–2024;
+  its HUC conversion (Proclamation 1267, May 2026) postdates every published year
+  and needs a plebiscite to take effect.
+- **`geo_par_id`** (all four layers): the *geographic* parent's pcode — barangay →
+  its city, city → the **province it physically sits in** (recovered from the
+  old-format PSGC code, which embeds the province even where the new code and the
+  administrative `adm2` do not), province → region, region → `PH`. For HUCs/ICCs
+  this restores the province link that administrative `adm2` drops (e.g. City of
+  Cebu → Cebu); NCR cities point to NCR (no province exists). Named `geo_par_id`,
+  not `geo_parent_id`, because DBF field names cap at 10 characters. Both
+  `city_class` and `geo_par_id` are deliberate additions **outside** the OCHA
+  COD-AB schema.
 - `name1..3` and `lang1..3` are empty — they are empty in the source COD-AB too.
 - `adm*_ref_n` is set equal to `adm*_name` (the source's reference name differs
   from the name in only ~1% of rows).
