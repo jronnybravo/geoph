@@ -70,7 +70,7 @@ Consequences:
   from the name in only ~1% of rows).
 - `valid_on` is the snapshot year date (e.g. 20241231); `valid_to` is open.
 
-## Region naming (`adm1_name`) and ordering (`adm1_seq`)
+## Region naming (`adm1_name`) and ordering (`sequence`)
 
 Region names follow the Wikipedia
 [Regions of the Philippines](https://en.wikipedia.org/wiki/Regions_of_the_Philippines)
@@ -92,10 +92,10 @@ digits of `adm1_pcode`) is *not* the Roman-numeral designation — Caraga is cod
 16 but "Region XIII", Mimaropa is code 17 but was "Region IV-B". The code lives
 in `adm1_pcode`; the designation lives in `adm1_name`.
 
-**`adm1_seq`** (regions layer only, integer): a sort key that reproduces the
+**`sequence`** (regions layer only, integer): a sort key that reproduces the
 Wikipedia table's order, which is **geographic** — island group Luzon → Visayas →
 Mindanao, roughly north-to-south — and matches *neither* the pcode nor the region
-number. `ORDER BY adm1_seq` yields NCR, CAR, Region I–IV-A, Mimaropa, V, VI, NIR,
+number. `ORDER BY sequence` yields NCR, CAR, Region I–IV-A, Mimaropa, V, VI, NIR,
 VII, VIII, IX–XII, Caraga, BARMM. Values are 1–18 for 2024 and 1–17 for
 2022/2023 (which predate NIR); the relative order is identical. This field is a
 deliberate addition **outside** the OCHA COD-AB schema and is not present on the
