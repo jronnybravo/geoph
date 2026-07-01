@@ -55,27 +55,36 @@ Consequences:
   from the name in only ~1% of rows).
 - `valid_on` is the snapshot year date (e.g. 20241231); `valid_to` is open.
 
-## Region naming (`adm1_name`)
+## Region naming (`adm1_name`) and ordering (`adm1_seq`)
 
-Region names are standardized to **`REGION <Roman> (Descriptive Name)`** for the
-14 regions that carry an official Roman-numeral designation, e.g.
-`REGION I (Ilocos Region)`, `REGION IV-A (CALABARZON)`, `REGION XIII (Caraga)`.
-MIMAROPA is written `REGION IV-B (MIMAROPA)` — its designation from 2002 until it
-was renamed the "Southwestern Tagalog Region (MIMAROPA)" in 2016.
+Region names follow the Wikipedia
+[Regions of the Philippines](https://en.wikipedia.org/wiki/Regions_of_the_Philippines)
+table: **`<Name> (<Designation>)`**, e.g. `Ilocos Region (Region I)`,
+`Calabarzon (Region IV-A)`, `Caraga (Region XIII)`. The four regions with no
+Roman-numeral designation use their acronym as the designation:
+`National Capital Region (NCR)`, `Cordillera Administrative Region (CAR)`,
+`Negros Island Region (NIR)`, `Bangsamoro Autonomous Region in Muslim Mindanao
+(BARMM)`.
 
-Four regions have a PSGC **region code** but **no Roman-numeral designation**, so
-they are kept name-only (no fabricated number):
+- **Mimaropa** is `Southwestern Tagalog Region (Mimaropa)`. It was formerly
+  designated **Region IV-B** (2002) until it was renamed and the Roman numeral
+  dropped in 2016; we use the current, un-numbered designation.
+- Casing follows the source table: `Calabarzon`, `Soccsksargen`, `Mimaropa` are
+  title-case (not all-caps acronyms).
 
-- `National Capital Region (NCR)` — code 13
-- `Cordillera Administrative Region (CAR)` — code 14
-- `Bangsamoro Autonomous Region In Muslim Mindanao (BARMM)` — code 15 (2022/2023),
-  19 (2024)
-- `Negros Island Region (NIR)` — code 18 (2024 only)
+Two numbering systems must not be confused: the **PSGC region code** (first two
+digits of `adm1_pcode`) is *not* the Roman-numeral designation — Caraga is code
+16 but "Region XIII", Mimaropa is code 17 but was "Region IV-B". The code lives
+in `adm1_pcode`; the designation lives in `adm1_name`.
 
-Note the two numbering systems differ: the PSGC region code (first two digits of
-`adm1_pcode`) is **not** the Roman-numeral designation — Caraga is code 16 but
-"Region XIII", and MIMAROPA is code 17 but "Region IV-B". The code lives in
-`adm1_pcode`; the designation lives in `adm1_name`.
+**`adm1_seq`** (regions layer only, integer): a sort key that reproduces the
+Wikipedia table's order, which is **geographic** — island group Luzon → Visayas →
+Mindanao, roughly north-to-south — and matches *neither* the pcode nor the region
+number. `ORDER BY adm1_seq` yields NCR, CAR, Region I–IV-A, Mimaropa, V, VI, NIR,
+VII, VIII, IX–XII, Caraga, BARMM. Values are 1–18 for 2024 and 1–17 for
+2022/2023 (which predate NIR); the relative order is identical. This field is a
+deliberate addition **outside** the OCHA COD-AB schema and is not present on the
+province/city/barangay layers.
 
 ## Barangay-level edge cases (2024 / current)
 
