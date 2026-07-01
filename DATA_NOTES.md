@@ -55,6 +55,28 @@ Consequences:
   from the name in only ~1% of rows).
 - `valid_on` is the snapshot year date (e.g. 20241231); `valid_to` is open.
 
+## Region naming (`adm1_name`)
+
+Region names are standardized to **`REGION <Roman> (Descriptive Name)`** for the
+14 regions that carry an official Roman-numeral designation, e.g.
+`REGION I (Ilocos Region)`, `REGION IV-A (CALABARZON)`, `REGION XIII (Caraga)`.
+MIMAROPA is written `REGION IV-B (MIMAROPA)` — its designation from 2002 until it
+was renamed the "Southwestern Tagalog Region (MIMAROPA)" in 2016.
+
+Four regions have a PSGC **region code** but **no Roman-numeral designation**, so
+they are kept name-only (no fabricated number):
+
+- `National Capital Region (NCR)` — code 13
+- `Cordillera Administrative Region (CAR)` — code 14
+- `Bangsamoro Autonomous Region In Muslim Mindanao (BARMM)` — code 15 (2022/2023),
+  19 (2024)
+- `Negros Island Region (NIR)` — code 18 (2024 only)
+
+Note the two numbering systems differ: the PSGC region code (first two digits of
+`adm1_pcode`) is **not** the Roman-numeral designation — Caraga is code 16 but
+"Region XIII", and MIMAROPA is code 17 but "Region IV-B". The code lives in
+`adm1_pcode`; the designation lives in `adm1_name`.
+
 ## Barangay-level edge cases (2024 / current)
 
 - **Barangay 176, City of Caloocan** — officially split into 176-A/B/C/D. The
